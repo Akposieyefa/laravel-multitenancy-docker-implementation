@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: 'current-user'
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: 'laravel-multienancy-docker-implementation'
+    container_name: 'propel'
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - db
+    networks:
+      - my-network
+  db:
+    image: mysql:8.0
+    container_name: 'db-propel'
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE} 
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - my-network
+  nginx:
+    image: nginx:alpine
+    container_name: 'nginx-propel'
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d/
+    networks:
+      - my-network
+networks:
+  my-network:
+    driver: bridge
